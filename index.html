@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES6</title>
+    <style>
+        #search_result{
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            grid-template-rows: auto;
+            gap: 20px;
+        }
+        #menu{
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto;
+        }
+        
+        #firstMenu{
+            display: flex;
+            gap: 30px;
+            margin: 3px 20px;
+
+        }
+        #firstMenu img{
+            width: 50%;
+            height: 35px;
+        }
+        #middleMenu{
+            height: 35px;
+            margin: 3px 40px;
+
+        }
+        #middleMenu>input{
+            width: 80%;
+            height: 35px;
+        }
+        #middleMenu>button{
+            height: 35px;
+        }
+        .fa-solid fa-microphone{
+            height: 35px;
+        }
+
+        #lastMenu{
+            display: flex;
+            gap: 30px;
+            /* color: black; */
+            margin: 3px 40px;
+            flex-direction: row-reverse;
+            
+        }
+        #lastMenu img{
+            height: 42px;
+            margin-top: -5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="menu">
+        <div id="firstMenu">
+            <i class="fa-solid fa-bars fa-2x"></i>
+            <img src="./Images/youtube-final.jpg" alt="" >
+        </div>
+        <div id="middleMenu">
+            <input type="search" id="search" placeholder="search" >
+            <button onclick="search()">Search</button> 
+            <!-- <i class="fa-solid fa-microphone"></i> -->
+         </div>
+        <div id="lastMenu">
+            <!-- <i class="fa-solid fa-user fa-2x"></i>    -->
+            <img src="./Images/grid.png" alt="" >      
+            <!-- <i class="fa-solid fa-bell fa-2x "></i>
+            <i class="fa-solid fa-circle-plus fa-2x"></i> -->
+        </div>
+    </div>
+    <!-- <h1>Youtube</h1>
+    <input type="text" id="search">
+    <button onclick="search()">Search</button> -->
+    <div id="search_result"></div>
+</body>
+
+</html>
+<script>
+    // GET https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=football&key=[YOUR_API_KEY] HTTP/1.1
+
+    // Authorization: Bearer [YOUR_ACCESS_TOKEN]
+    // Accept: application/json
+    var search_result_div = document.querySelector("#search_result");
+    const search = async () => {
+        try {
+            let inp = document.getElementById("search").value;
+            let res = await fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${inp}&key=AIzaSyDdH-sFDEIDXJbtcWo2zn4_GsV8eZflLQg&maxResults=50`);
+                // let res = await fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=trendingvideo&key=AIzaSyDdH-sFDEIDXJbtcWo2zn4_GsV8eZflLQg&maxResults=50`);
+            let data = await res.json();
+            let video = data.items;
+            appendVideo(video);
+            console.log("data", data);
+        } catch (error) {
+            console.log("error");
+        };
+    }
+
+    const appendVideo = (data) => {
+        search_result_div.innerHTML = null;
+        try {
+        data.forEach(({snippet:{title},id:{videoId},snippet:{thumbnails:{medium:{url}}}})  => {
+            
+                let div = document.createElement("div");
+
+                let name = document.createElement("p");
+
+                name.innerText = title;
+
+                // let iframe = document.createElement("iframe");
+                // iframe.src = `https://www.youtube.com/embed/${videoId}`;
+                // iframe.style.width = "100%";
+                // iframe.allow = 'fullscreen';
+                let thumbnails = document.createElement("img");
+                thumbnails.src = url;
+                thumbnails.style.width = "100%";
+                thumbnails.style.height = "200px";
+
+               let videoLink = `https://www.youtube.com/embed/${videoId}`;
+                thumbnails.addEventListener("click", function(){
+                    playVideo(videoLink);
+                })
+                div.append(thumbnails,name);
+
+                search_result_div.append(div);
+            });
+            } catch (error) {
+                console.log("error");
+            }
+    }
+    // img url
+    // "https://www.youtube.com/embed/RPvzhQ0MfhM"
+    var videoLink = JSON.parse(localStorage.getItem("playVideo")) || [];
+
+    const playVideo = (videoLink) =>{
+        // console.log(videoLink);
+        localStorage.setItem("playVideo",JSON.stringify(videoLink));
+        window.location.href = "videoPlayer.html";
+    };
+
+
+    const trendVideo = async () =>{
+        try {
+            let res = await fetch("https://youtube.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=in&maxResults=20&key=AIzaSyD1GKvoxTW_nOT4AsggKAJy_dp2BkU8Y0o");
+
+            let data = await res.json();
+            // appendVideo(data);
+            popularVideo(data.items);
+            console.log(data);
+        } catch (error) {
+            console.log("error");
+        }
+    };
+
+    const popularVideo = (data) =>{
+        try {
+        data.forEach(({snippet:{title},id})  => {
+            
+                let trendingDiv = document.createElement("div");
+
+                let trendingName = document.createElement("p");
+                console.log(trendingName)
+
+                trendingName.innerText = title;
+
+                let iframe = document.createElement("iframe");
+                iframe.src = `https://www.youtube.com/embed/${id}`;
+                iframe.style.width = "100%";
+                iframe.allow = 'fullscreen';
+                // let thumbnails = document.createElement("img");
+                // thumbnails.src = url;
+                // thumbnails.style.width = "100%";
+                // thumbnails.style.height = "200px";
+
+            //    let videoLink = `https://www.youtube.com/embed/${videoId}`;
+               
+                trendingDiv.append(iframe,trendingName);
+
+                search_result_div.append(trendingDiv);
+            });
+            } catch (error) {
+                console.log("error");
+            }
+    }
+    trendVideo();
+
+</script>
